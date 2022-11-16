@@ -181,7 +181,7 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
                 </div>
 
                 <div className='col-lg-4 col-md-12'>
-                    <div className="rounded p-3 shadow border">
+                    <div className="rounded p-3 shadow border" style = {{position: 'sticky', top: '105px'}}>
                         <div className='d-flex justify-content-between align-items-center'>
                             <h4>Nộp bài tập</h4>
                             {exerciseInfor?.TRANGTHAI !== 1 ?
@@ -223,8 +223,6 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
                                 <button type='submit' className="btn btn-primary mt-3" disabled={exerciseInfor?.TRANGTHAI === 1 ? false : true}>Submit</button>
                             </FormControl>
                         </form>
-                        {/* {status && <h4>{status}</h4>} */}
-
                     </div>
                 </div>
             </div>
