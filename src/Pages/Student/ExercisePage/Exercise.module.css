@@ -1,0 +1,13 @@
+.deleteIcon {
+    color: rgb(42, 87, 126);
+}
+
+.deleteIcon:hover {
+    color: rgb(245, 157, 47);
+    transform: scale(1.2, 1.2);
+    transition: all 0.3s;
+}
+
+.bainopItem:hover {
+    box-shadow: 0px 2px 7px -1px rgba(0, 0, 0, 0.2) ;
+}
