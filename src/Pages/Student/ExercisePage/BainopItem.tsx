@@ -9,16 +9,16 @@ import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import { Avatar, Button, IconButton, Typography } from "@mui/material";
 import { FiX } from "react-icons/fi";
+import { axiosInstance } from "../../../api";
 
 interface BainopItemProps {
-    data: BainopType
+    data: BainopType,
+    reload: Function
 }
 
-function stringToColor(string: string) {
+export function stringToColor(string: string) {
     let hash = 0;
     let i;
-
-    /* eslint-disable no-bitwise */
     for (i = 0; i < string.length; i += 1) {
         hash = string.charCodeAt(i) + ((hash << 5) - hash);
     }
@@ -29,8 +29,6 @@ function stringToColor(string: string) {
         const value = (hash >> (i * 8)) & 0xff;
         color += `00${value.toString(16)}`.slice(-2);
     }
-    /* eslint-enable no-bitwise */
-
     return color;
 }
 
@@ -43,7 +41,15 @@ function stringAvatar(name: string) {
     };
 }
 
-const BainopItem: FunctionComponent<BainopItemProps> = ({ data }) => {
+function deleteFile(id: string, reloadFunction: Function) {
+    axiosInstance.delete('/file/' + id).then(res => {
+        reloadFunction();
+    }).catch(err => {
+        console.log(err);
+    });
+}
+
+const BainopItem: FunctionComponent<BainopItemProps> = ({ data, reload}) => {
     return (
         // <div className={`bg-white rounded p-2 border pointer ${style.bainopItem}`}>
         //     {
@@ -69,11 +75,11 @@ const BainopItem: FunctionComponent<BainopItemProps> = ({ data }) => {
                     <Avatar >B</Avatar>
                 }
                 action={
-                    <IconButton>
+                    <IconButton onClick = {() => deleteFile(String(data.IDBAINOP), reload)}>
                         <FiX />
                     </IconButton>
                 }
-                title={data.MASV}
+                title={data.nguoiNop?.[0].HoTen}
                 subheader={new Date(data.THOIGIANNOP).toLocaleString('en-GB', { timeZone: 'UTC' })}
             >
             </CardHeader>
@@ -105,7 +111,7 @@ const BainopItem: FunctionComponent<BainopItemProps> = ({ data }) => {
                 </Typography>
             </CardContent>
             <CardActions>
-                <Button>Xem</Button>
+                <Button onClick={() => {window.open(data.WEBVIEWLINK, "_blank")}}>Xem</Button>
             </CardActions>
         </Card>
     );

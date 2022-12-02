@@ -16,19 +16,21 @@ const Account: FunctionComponent<AccountProps> = () => {
     const navigate = useNavigate();
 
     function handleLogout () {
+        console.log('logout');
         localStorage.removeItem('username');
         localStorage.removeItem('groupID');
         navigate('/login')
     }
     return (
-        <div className='position-relative'>
-            <div className="d-flex align-items-center gap-2 pointer" onClick={() => setShow(!show)}>
+        <div className='position-relative' tabIndex={ 0 } onBlur={() => setShow(false)} onFocus = {() => console.log('cha')}>
+            <div className="d-flex align-items-center gap-2 pointer" onClick={() => setShow(!show)} onFocus = {() => console.log('con2')}>
                 <div style={{ backgroundImage: 'linear-gradient(180deg, #009FFD 10%, #2A2A72 100%)', height: '40px', width: '40px', lineHeight: ' 35px' }} className='rounded-circle text-center'>
                     <BsPerson className="text-white fs-4" />
                 </div>
                 <BsFillCaretDownFill style={{ color: 'gray' }} />
             </div>
-            <div style={{ position: 'absolute', right: '0', opacity: `${show ? '1' : '0'}`, marginTop: `${show ? '10px' : '-5px'}`, transition: 'all 0.5s'}} className = 'shadow'>
+            <div style={{ position: 'absolute', right: '0', opacity: `${show ? '1' : '0'}`, marginTop: `${show ? '10px' : '-5px'}`, transition: 'all 0.5s'}} 
+            className = 'shadow' onFocus = {() => console.log('con2')}>
                 <List
                     sx={{ width: '100%', minWidth: 250, bgcolor: 'background.paper' }}
                     component="nav"
@@ -44,7 +46,7 @@ const Account: FunctionComponent<AccountProps> = () => {
                         </ListItemIcon>
                         <ListItemText primary="Hồ sơ" />
                     </ListItemButton>
-                    <ListItemButton onClick={handleLogout} disabled = {show ? false : true}>
+                    <ListItemButton disabled = {show ? false : true} onFocus = {handleLogout}>
                         <ListItemIcon>
                             <BsBoxArrowRight size={30} className = 'ms-1'/>
                         </ListItemIcon>

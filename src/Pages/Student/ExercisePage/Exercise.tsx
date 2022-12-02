@@ -1,19 +1,22 @@
-import { Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import { Button, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import axios, { AxiosRequestConfig } from "axios";
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect } from "react";
 import { FunctionComponent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import { axiosInstance } from "../../../api";
 import BainopItem from "./BainopItem";
 import FileItem from "./FileItem";
+import { MdOutlineAssignment, MdArrowBack } from "react-icons/md";
 
 interface ExcerciseProps {
 
 }
 
-interface ExcerciseInfor {
-    IDBT: string,
+export interface ExcerciseInfor {
+    IDBTLOP: string,
     IDGV: string,
+    IDCLASS: string,
     TENBT: string,
     MOTA: string,
     LOAIBT: string,
@@ -24,24 +27,27 @@ interface ExcerciseInfor {
 export interface BainopType {
     IDBAINOP: number,
     IDBTLOP: number,
-    MASV: string,
+    nguoiNop: {
+        HoTen: string,
+        MASV: string,
+        LOP: string
+    }[],
     IDTOPIC: number,
     THOIGIANNOP: string,
     IDFILE: string,
     LOAITL: string,
     GHICHU: string | null,
-    TENFILE: string
+    TENFILE: string,
+    WEBVIEWLINK: string
 }
 
 const Excercise: FunctionComponent<ExcerciseProps> = () => {
     const { id } = useParams();
-    // const [status, setStatus] = useState('');
     const [image, setImage] = useState<{ preview: string, data: any }>({ preview: '', data: '' })
     const [exerciseInfor, setExerciseInfor] = useState<ExcerciseInfor | null>(null);
     const [topicList, setTopicList] = useState<{ IDTOPIC: string, TENTOPIC: string }[] | null>(null);
     const [topic, setTopic] = useState<string>('');
     const [listBainop, setListBainop] = useState<BainopType[]>([]);
-    // const [fileUp, setFileUp] = useState<any>('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -71,7 +77,10 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
     }
 
     const config: AxiosRequestConfig<FormData> = {
-        onUploadProgress: progressEvent => console.log(progressEvent.loaded)
+        onUploadProgress: progressEvent => console.log(progressEvent.loaded),
+        headers: {
+            "Content-Type": "multipart/form-data; charset=utf-8",
+        }
     }
 
     useEffect(() => {
@@ -82,6 +91,7 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
                 } else {
                     if (res.length === 1) {
                         setExerciseInfor(res[0]);
+                        console.log(res[0]);
                     }
                 }
             }).catch(err => {
@@ -99,49 +109,56 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
 
     useEffect(() => {
         getTopic(id || '', localStorage.getItem('id') || '').then(res => {
-            setTopic(res[0].IDTOPIC);
-            // console.log(res[0]);
+            if (res.length > 0) {
+                setTopic(res[0].IDTOPIC);
+            }
         }).catch(err => console.log(err));
     }, [exerciseInfor]);
 
     useEffect(() => {
         getListBaiNop(id || '', localStorage.getItem('id') || '').then(res => {
             setListBainop(res);
-        })
-    })
+        });
+    }, [loading]);
+
+    function reload() {
+        getListBaiNop(id || '', localStorage.getItem('id') || '').then(res => {
+            setListBainop(res);
+        });
+    }
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        let formData = new FormData()
-        formData.append('file', image.data);
+        let formData = new FormData();
+        formData.append('file', image.data, image.data.name);
         formData.append('IDBTLOP', id || '');
-        formData.append('IDSVLOP', localStorage.getItem('id') || '');
+        formData.append('MASV', localStorage.getItem('id') || '');
         formData.append('IDTOPIC', topic);
+        formData.append('filename', image.data.name);
         setLoading(true);
         axios.post('http://localhost:8080/api/image', formData, config).then(res => {
-            // setFileUp(res);
-            // setStatus(res.statusText);
             setLoading(false);
-            setImage({ preview: '', data: '' });
+            clearImage();
         }).catch(err => {
-            // setStatus('upload fail');
+            setLoading(false);
+            toast.error('Nộp tài liệu thất bại');
             console.log(err);
         });
     };
 
 
     const handleFileChange = (e: React.ChangeEvent) => {
-        // setStatus('');
         const file = (e.target as HTMLInputElement).files?.[0];
         const img = {
             preview: file !== undefined ? URL.createObjectURL(file) : '',
             data: file ? file : '',
         }
+        console.log(img);
         setImage(img)
     }
 
-    const handleChange = (event: SelectChangeEvent) => {
+    const handleTopicChange = (event: SelectChangeEvent) => {
         if (event.target.value !== topic) {
             if (window.confirm('Thay đổi topic có thể bị trừ điểm, bạn có muốn đổi? ')) {
                 setTopic(event.target.value as string);
@@ -160,38 +177,62 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
     return (
         <div className="container my-4 pt-2">
             <div className='row'>
-                <div className=" col-lg-8 col-md-12">
-                    <div className="border-bottom border-1 mb-4 pb-3 pe-3">
-                        <h2>{exerciseInfor?.TENBT}</h2>
-                        <div className="d-flex justify-content-between">
-                            <span>{`Loại bài tập: ${exerciseInfor?.LOAIBT}`}</span>
-                            <span>{`Hạn nộp đến: ${new Date(exerciseInfor?.THOIHAN || '').toLocaleString('en-GB', { timeZone: 'UTC' })}`}</span>
+                <div className="col-12" style={{ maxWidth: '' }}>
+                    <div className='rounded shadow border p-3 mb-4' style={{ backgroundColor: 'white' }}>
+                        <div className="border-bottom border-1 mb-4 pb-3 pe-3">
+                            <div className='d-flex align-items-center gap-2'>
+                                <div className="d-flex">
+                                    <IconButton onClick={() => navigate('/student/class/' + exerciseInfor?.IDCLASS + '/assigment')}>
+                                        <MdArrowBack />
+                                    </IconButton>
+                                    <div className='rounded-circle position-relative' style={{ backgroundColor: '#f6931e', width: '2.5em', height: '2.5em' }}>
+                                        <MdOutlineAssignment className='fs-3 text-white position-absolute top-50 start-50 translate-middle' />
+                                    </div>
+                                </div>
+                                <h2 className = 'm-0' style={{ color: '#10316B' }}>{exerciseInfor?.TENBT}</h2>
+                            </div>
+                            <div className="d-flex flex-column flex-lg-row justify-content-between mt-2 ps-4">
+                                <p className='fs-5'>
+                                    <b>Loại bài tập</b>
+                                    {`: ${exerciseInfor?.LOAIBT}`}
+                                </p>
+                                <p className='fs-5'>
+                                    <b>Hạn nộp đến</b>
+                                    {`: ${new Date(exerciseInfor?.THOIHAN || '').toLocaleString('en-GB', { timeZone: 'UTC' })}`}
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            {exerciseInfor?.MOTA ? exerciseInfor.MOTA : ''}
                         </div>
                     </div>
-                    <div>
-                        {exerciseInfor?.MOTA ? exerciseInfor.MOTA : ''}
-                    </div>
-                    <div className="row row-cols-2 g-3 mb-4">
+                </div>
+
+                <div className='col-lg-8 col-12'>
+                    <div className="row row-cols-md-2 row-cols-1 g-3 mb-4">
                         {listBainop.length === 0 ? <p>Chưa có tài liệu nào được nộp!!</p> : listBainop.map(item => (
                             <div key={item.IDBAINOP} className='col'>
-                                <BainopItem data={item} />
+                                <BainopItem data={item} reload={reload} />
                             </div>
                         ))}
                     </div>
                 </div>
 
                 <div className='col-lg-4 col-md-12'>
-                    <div className="rounded p-3 shadow border" style = {{position: 'sticky', top: '105px'}}>
+                    <div className="rounded p-3 shadow border bg-white" style={{ position: 'sticky', top: '105px' }}>
                         <div className='d-flex justify-content-between align-items-center'>
                             <h4>Nộp bài tập</h4>
                             {exerciseInfor?.TRANGTHAI !== 1 ?
-                                <span className='text-danger pe-2'>Bài tập đã đóng</span> : new Date(exerciseInfor?.THOIHAN || '') < new Date() ? <span className='text-danger pe-2'>Nộp muộn</span> : null}
+                                <span className='text-danger pe-2'>Bài tập đã đóng</span> :
+                                new Date(exerciseInfor?.THOIHAN || '') < new Date() ?
+                                    <span className='text-danger pe-2'>Nộp muộn</span> :
+                                    null}
                         </div>
                         <hr className="my-1"></hr>
                         <form onSubmit={handleSubmit}>
                             <div className='mt-3 mb-4'>
                                 {image.preview &&
-                                    <FileItem fileData={image} onDelete={clearImage} loading = {loading}/>}
+                                    <FileItem fileData={image} onDelete={clearImage} loading={loading} />}
                             </div>
                             <label htmlFor="btn-upload" style={{ display: `${image.data ? 'none' : 'block'}` }} className='mb-3'>
                                 <input
@@ -214,7 +255,7 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
                                     id="demo-simple-select"
                                     value={topic}
                                     label="Topic"
-                                    onChange={handleChange}
+                                    onChange={handleTopicChange}
                                 >
                                     {topicList ? topicList.map(item => (
                                         <MenuItem key={item.IDTOPIC} value={item.IDTOPIC}> {item.TENTOPIC}</MenuItem>

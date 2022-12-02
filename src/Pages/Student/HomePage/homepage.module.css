@@ -1,0 +1,4 @@
+.classCard:hover, .assCard:hover {
+    transform: scale(1.03);
+    transition: transform 0.1s;
+}

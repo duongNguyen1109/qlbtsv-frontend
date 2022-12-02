@@ -1,3 +1,13 @@
 .pointer {
-  cursor: pointer;
+	cursor: pointer;
+}
+
+.notfound-text-img {
+	font-size: min(250px, 30vw);
+	font-weight: bolder;
+	background-clip: text; 
+	-webkit-background-clip: text; 
+	color: transparent;
+	background-image: url('https://gifimage.net/wp-content/uploads/2018/10/blue-sky-gif-3.gif');
+	background-size: cover;
 }
