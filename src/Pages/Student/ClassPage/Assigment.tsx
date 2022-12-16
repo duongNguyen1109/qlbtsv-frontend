@@ -33,7 +33,7 @@ const Assigment: FunctionComponent<AssigmentProps> = () => {
             </div>
             <div className="d-none d-sm-block col-md-9 ">
                 {listAss.map((item) => (
-                    <AssItem data = {item} key = {item.IDBTLOP}/>
+                    <AssItem data = {item} key = {item.IDBTLOP} navigatePage = '/student/exercise/'/>
                 ))}
             </div>
         </div>

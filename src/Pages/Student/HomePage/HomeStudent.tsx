@@ -41,6 +41,32 @@ export type classType = {
     // "TYLEDIEMBTL": null
 }
 
+export const initialClassState = {
+    CLASSID: '',
+    MAGV: '',
+    CLASSNAME: '',
+    CLASSSTATUS: '', //"closed",
+    HOCKY: '', //"220202021",
+    // "NGAYBATDAU": "21M02",
+    // "NGAYKETTHUC": null,
+    // "NGAYTHI": null,
+    MASVLOPTRUONG: '', //"B19DCPT252",
+    // "GHICHU": null,
+    // "MALOPMH": null,
+    // "NGAYKT": null,
+    MHID: '', //"MH0006",
+    MAMH: '', //"MUL1425",
+    TENMH: '', //"Thiết kế tương tác đa phương tiện",
+    TENVIETTAT: '', //"TKTT",
+    // "NGANHID": null,
+    SOTINCHI: 0, //3,
+    // "KHOIKIENTHUCID": null,
+    // "TYLEDIEMCC": "10",
+    // "TYLEDIEMKT": "20",
+    // "TYLEDIEMTHUCHANH": null,
+    // "TYLEDIEMBTL": null
+}
+
 const HomeStudent: FunctionComponent<HomeStudentProps> = () => {
     const [listHocky, setListHocky] = useState<HockyType[]>([]);
     const [hocky, setHocky] = useState('');

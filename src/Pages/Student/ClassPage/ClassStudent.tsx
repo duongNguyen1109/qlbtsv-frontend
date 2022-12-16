@@ -12,7 +12,7 @@ interface ClassStudentProps {
 const ClassStudent: FunctionComponent<ClassStudentProps> = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [ass, setAss] = useState<classType>();
+    const [classInfor, setClassInfor] = useState<classType>();
 
     function getAssigment(): Promise<classType[]> {
         return axiosInstance.get('/class/' + id);
@@ -21,7 +21,7 @@ const ClassStudent: FunctionComponent<ClassStudentProps> = () => {
     useEffect(() => {
         getAssigment().then(res => {
             if (res.length > 0) {
-                setAss(res[0]);
+                setClassInfor(res[0]);
             } else {
                 navigate('/notfound');
             }
@@ -30,8 +30,8 @@ const ClassStudent: FunctionComponent<ClassStudentProps> = () => {
 
     return (
         <div className="container pt-4">
-            <div className="pt-3 pb-1 px-3 rounded mb-4" style={{ background: ass?.CLASSSTATUS === 'closed' ? color[1] : color[0] }}>
-                <h3 className="text-white mb-5 text-center">Lớp {ass?.CLASSNAME}</h3>
+            <div className="pt-3 pb-1 px-3 rounded mb-4" style={{ background: classInfor?.CLASSSTATUS === 'closed' ? color[1] : color[0] }}>
+                <h3 className="text-white mb-5 text-center">Lớp {classInfor?.CLASSNAME}</h3>
                 <div className="d-flex justify-content-center">
                     <NavLink to={'assigment'}
                         className={({isActive}) => `text-decoration-none fs-5 ${style.navLink} ${isActive ? style.navLinkActive : undefined}`}>

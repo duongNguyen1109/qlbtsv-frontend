@@ -1,20 +1,36 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useState, useEffect } from "react";
 import { BainopType } from "./Exercise";
 import fileIcon from '../../../image/file-icon1.png';
-import style from "./Exercise.module.css";
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
-import { Avatar, Button, IconButton, Typography } from "@mui/material";
+import { Avatar, Button, FormControl, IconButton, InputLabel, MenuItem, Select, Typography } from "@mui/material";
 import { FiX } from "react-icons/fi";
 import { axiosInstance } from "../../../api";
+import { Modal } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 interface BainopItemProps {
     data: BainopType,
-    reload: Function
+    reload?: Function,
+    changeTopic?: boolean,
+    isSearch?: boolean
 }
+
+export type TopicType = {
+    IDTOPIC: number,
+    TENTOPIC: string//"Website bán hàng"
+}
+
+// @TODO Define type of student here.
+export type StudentType = {
+    MASV: string,
+    HoTen: string
+}
+
+
 
 export function stringToColor(string: string) {
     let hash = 0;
@@ -49,71 +65,117 @@ function deleteFile(id: string, reloadFunction: Function) {
     });
 }
 
-const BainopItem: FunctionComponent<BainopItemProps> = ({ data, reload}) => {
-    return (
-        // <div className={`bg-white rounded p-2 border pointer ${style.bainopItem}`}>
-        //     {
-        //         data.LOAITL.split('/')[0] === 'image' ?
-        //             <img src={"https://drive.google.com/uc?export=view&id=" + data.IDFILE}
-        //                 className='w-100'
-        //                 style={{ objectFit: 'contain', aspectRatio: '1/1' }} alt='fileImg'></img> :
-        //             <img src={fileIcon} className='w-100'
-        //                 style={{ objectFit: 'contain', aspectRatio: '1/1' }} alt='fileIcon' />
-        //     }
+export function getTopic(id : string): Promise<TopicType> {
+    return axiosInstance.get('/topic/' + id);
+}
 
-        //     <div>
-        //         <a href={'https://drive.google.com/uc?id=' + data.IDFILE} target='_blank' style={{textDecoration: 'none'}}>
-        //             <h5 className="w-100 text-truncate">{data.TENFILE}</h5>
-        //         </a>
-        //         <span><b>Người nộp</b>: {data.MASV}</span><br></br>
-        //         <span><b>Thời gian: </b>{new Date(data.THOIGIANNOP).toLocaleString('en-GB', { timeZone: 'UTC' })}</span>
-        //     </div>
-        // </div>
-        <Card>
-            <CardHeader
-                avatar={
-                    <Avatar >B</Avatar>
-                }
-                action={
-                    <IconButton onClick = {() => deleteFile(String(data.IDBAINOP), reload)}>
-                        <FiX />
-                    </IconButton>
-                }
-                title={data.nguoiNop?.[0].HoTen}
-                subheader={new Date(data.THOIGIANNOP).toLocaleString('en-GB', { timeZone: 'UTC' })}
+const BainopItem: FunctionComponent<BainopItemProps> = ({ data, reload, changeTopic , isSearch }) => {
+    const [show, setShow] = useState(false);
+    const [topic, setTopic] = useState('');
+    const [newTopic, setNewTopic] = useState('');
+    const [listTopic, setListTopic] = useState<TopicType[]>([]);
+    const navigate = useNavigate()
+
+
+    function getListTopic(): Promise<TopicType[]> {
+        return axiosInstance.get('/topic')
+    }
+
+    useEffect(() => {
+        getTopic(String(data.IDTOPIC)).then(res => {
+            setTopic(res.TENTOPIC);
+        });
+
+        getListTopic().then(res => {
+            setListTopic(res);
+        })
+    }, [])
+
+    return (
+        <div>
+            <Card>
+                <CardHeader
+                    avatar={
+                        <Avatar >B</Avatar>
+                    }
+                    action={
+                        reload ? <IconButton onClick={() => deleteFile(String(data.IDBAINOP), reload)}>
+                            <FiX />
+                        </IconButton> : null
+                    }
+                    title={data.nguoiNop?.[0].HoTen ?? `${data.HODEM} ${data.TENSV}`}
+                    subheader={new Date(data.THOIGIANNOP).toLocaleString('en-GB', { timeZone: 'UTC' })}
+                >
+                </CardHeader>
+                <CardMedia
+                    component="img"
+                    style={{ aspectRatio: '1/1', objectFit: 'contain' }}
+                    image={data.LOAITL.split('/')[0] === 'image' ? "https://drive.google.com/uc?export=view&id=" + data.IDFILE : fileIcon}
+                    alt="Hinh anh tai lieu"
+                />
+                <CardContent>
+                    <h5 className="w-100 text-truncate">{data.TENFILE}</h5>
+                    <Typography variant="body2">
+                        <Typography variant="subtitle2" component='span' style={{ fontWeight: 'bold' }}>
+                            Loại tài liệu:
+                        </Typography>
+                        {data.LOAITL}
+                    </Typography>
+                    <Typography variant="body2">
+                        <Typography variant="subtitle2" component='span' style={{ fontWeight: 'bold' }}>
+                            Topic:
+                        </Typography>
+                        {topic}
+                    </Typography>
+                    <Typography variant="body2">
+                        <Typography variant="subtitle2" component='span' style={{ fontWeight: 'bold' }}>
+                            Ghi chú:
+                        </Typography>
+                        {data.GHICHU}
+                    </Typography>
+                </CardContent>
+                <CardActions>
+                    <Button onClick={() => { window.open(data.WEBVIEWLINK, "_blank") }}>Xem</Button>
+                    {changeTopic ? <Button onClick={() => { setShow(true)}}>Thay đổi topic</Button> : null}
+                    {isSearch ? <Button onClick={() => { navigate('/teacher/exercise/' + data.IDBTLOP)}}>Đến trang bài tập</Button> : null}
+                </CardActions>
+            </Card>
+            <Modal
+                size="lg"
+                show={show}
+                onHide={() => {setShow(false); setNewTopic('')}}
             >
-            </CardHeader>
-            <CardMedia
-                component="img"
-                style={{ aspectRatio: '1/1', objectFit: 'contain' }}
-                image={data.LOAITL.split('/')[0] === 'image' ? "https://drive.google.com/uc?export=view&id=" + data.IDFILE : fileIcon}
-                alt="Hinh anh tai lieu"
-            />
-            <CardContent>
-                <h5 className="w-100 text-truncate">{data.TENFILE}</h5>
-                <Typography variant="body2">
-                    <Typography variant="subtitle2" component='span' style={{ fontWeight: 'bold' }}>
-                        Loại tài liệu:
-                    </Typography>
-                    {data.LOAITL}
-                </Typography>
-                <Typography variant="body2">
-                    <Typography variant="subtitle2" component='span' style={{ fontWeight: 'bold' }}>
-                        Topic:
-                    </Typography>
-                    {data.IDTOPIC}
-                </Typography>
-                <Typography variant="body2">
-                    <Typography variant="subtitle2" component='span' style={{ fontWeight: 'bold' }}>
-                        Ghi chú:
-                    </Typography>
-                    {data.GHICHU}
-                </Typography>
-            </CardContent>
-            <CardActions>
-                <Button onClick={() => {window.open(data.WEBVIEWLINK, "_blank")}}>Xem</Button>
-            </CardActions>
-        </Card>
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        Thay đổi topic
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p><b>Topic hiện tại: </b>{topic}</p>
+                    <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">Topic</InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={newTopic}
+                            label="Topic"
+                            onChange={(e) => {
+                                setNewTopic(e.target.value)
+                            }}
+                            className = 'mb-3'
+                        >
+                            {listTopic ? listTopic.map(item => (
+                                <MenuItem key={item.IDTOPIC} value={item.IDTOPIC}> {item.TENTOPIC}</MenuItem>
+                            )) : null}
+                        </Select>
+                    </FormControl>
+                    <Button variant="contained" className = 'me-3'>Lưu</Button>
+                    <Button variant="outlined" onClick = {() => {
+                        setShow(false); setNewTopic('')
+                    }}>Hủy</Button>
+                </Modal.Body>
+            </Modal>
+        </div>
     );
 }
 

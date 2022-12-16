@@ -22,14 +22,14 @@ const Account: FunctionComponent<AccountProps> = () => {
         navigate('/login')
     }
     return (
-        <div className='position-relative' tabIndex={ 0 } onBlur={() => setShow(false)} onFocus = {() => console.log('cha')}>
+        <div className='position-relative' tabIndex={ 0 } onFocus = {() => console.log('cha')}>
             <div className="d-flex align-items-center gap-2 pointer" onClick={() => setShow(!show)} onFocus = {() => console.log('con2')}>
                 <div style={{ backgroundImage: 'linear-gradient(180deg, #009FFD 10%, #2A2A72 100%)', height: '40px', width: '40px', lineHeight: ' 35px' }} className='rounded-circle text-center'>
                     <BsPerson className="text-white fs-4" />
                 </div>
                 <BsFillCaretDownFill style={{ color: 'gray' }} />
             </div>
-            <div style={{ position: 'absolute', right: '0', opacity: `${show ? '1' : '0'}`, marginTop: `${show ? '10px' : '-5px'}`, transition: 'all 0.5s'}} 
+            <div style={{ position: 'absolute', opacity: `${show ? '1' : '0'}`, right: '0', marginTop: `${show ? '10px' : '-5px'}`, transition: 'all 0.5s', zIndex : `${show ? '9' : 'auto'}`}}
             className = 'shadow' onFocus = {() => console.log('con2')}>
                 <List
                     sx={{ width: '100%', minWidth: 250, bgcolor: 'background.paper' }}

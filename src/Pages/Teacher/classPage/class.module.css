@@ -1,0 +1,19 @@
+.navLink {
+    padding: 0.5em 0.8em;
+    color: black !important;
+    font-weight: 500;
+}
+
+.navLink:hover {
+    background: #0B409C;
+    color: white !important;
+}
+
+.navLinkActive {
+    border-bottom: solid 4px #0B409C;
+}
+
+.assCard:hover {
+    transform: scale(1.02);
+    transition: transform 0.1s;
+}

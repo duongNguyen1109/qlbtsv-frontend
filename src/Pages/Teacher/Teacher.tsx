@@ -1,4 +1,5 @@
 import { FunctionComponent } from "react";
+import { Outlet } from "react-router-dom";
 import Header from "../../Component/Header";
 
 interface TeacherProps {
@@ -7,9 +8,9 @@ interface TeacherProps {
  
 const Teacher: FunctionComponent<TeacherProps> = () => {
     return (
-        <div>
+        <div style = {{backgroundColor: '#F2F7FF', minHeight: '100vh'}}>
             <Header />
-            <h1>Teacher</h1>
+            <Outlet />
         </div>
     );
 }

@@ -1,11 +1,11 @@
 import { Button, FormControl, IconButton, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import axios, { AxiosRequestConfig } from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FunctionComponent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { axiosInstance } from "../../../api";
-import BainopItem from "./BainopItem";
+import BainopItem, { TopicType } from "./BainopItem";
 import FileItem from "./FileItem";
 import { MdOutlineAssignment, MdArrowBack } from "react-icons/md";
 
@@ -15,6 +15,7 @@ interface ExcerciseProps {
 
 export interface ExcerciseInfor {
     IDBTLOP: string,
+    IDBT: string,
     IDGV: string,
     IDCLASS: string,
     TENBT: string,
@@ -38,15 +39,23 @@ export interface BainopType {
     LOAITL: string,
     GHICHU: string | null,
     TENFILE: string,
-    WEBVIEWLINK: string
+    WEBVIEWLINK: string,
+    MASV?: string, //"B17DCPT265",
+    HODEM?: string, //"Nguyễn Đỗ Tuấn",
+    TENSV?: string, //"Minh",
+}
+
+export function getTopicList(): Promise<TopicType[]> {
+    return axiosInstance.get('/topic');
 }
 
 const Excercise: FunctionComponent<ExcerciseProps> = () => {
     const { id } = useParams();
     const [image, setImage] = useState<{ preview: string, data: any }>({ preview: '', data: '' })
     const [exerciseInfor, setExerciseInfor] = useState<ExcerciseInfor | null>(null);
-    const [topicList, setTopicList] = useState<{ IDTOPIC: string, TENTOPIC: string }[] | null>(null);
-    const [topic, setTopic] = useState<string>('');
+    const [topicList, setTopicList] = useState<TopicType[] | null>(null);
+    const [topic, setTopic] = useState<string | undefined>(undefined);
+    const initialTopic = useRef('');
     const [listBainop, setListBainop] = useState<BainopType[]>([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -54,12 +63,9 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
     function getExcercise(id: string, maSV: string): Promise<ExcerciseInfor[]> {
         return axiosInstance.post('/inforbtlop', {
             IDBTLOP: id,
-            MASV: maSV
+            USERID: maSV,
+            role: 'SV'
         });
-    }
-
-    function getTopicList(): Promise<{ IDTOPIC: string, TENTOPIC: string }[]> {
-        return axiosInstance.get('/topic');
     }
 
     function getTopic(idBT: string, maSV: string): Promise<{ IDTOPIC: string, TENTOPIC: string }[]> {
@@ -74,13 +80,6 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
             IDBTLOP: id,
             MASV: maSV
         })
-    }
-
-    const config: AxiosRequestConfig<FormData> = {
-        onUploadProgress: progressEvent => console.log(progressEvent.loaded),
-        headers: {
-            "Content-Type": "multipart/form-data; charset=utf-8",
-        }
     }
 
     useEffect(() => {
@@ -110,8 +109,9 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
     useEffect(() => {
         getTopic(id || '', localStorage.getItem('id') || '').then(res => {
             if (res.length > 0) {
-                setTopic(res[0].IDTOPIC);
+                initialTopic.current = res[0].IDTOPIC;
             }
+            console.log(res);
         }).catch(err => console.log(err));
     }, [exerciseInfor]);
 
@@ -127,6 +127,8 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
         });
     }
 
+    console.log(initialTopic.current);
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -134,10 +136,10 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
         formData.append('file', image.data, image.data.name);
         formData.append('IDBTLOP', id || '');
         formData.append('MASV', localStorage.getItem('id') || '');
-        formData.append('IDTOPIC', topic);
+        formData.append('IDTOPIC', topic ?? '');
         formData.append('filename', image.data.name);
         setLoading(true);
-        axios.post('http://localhost:8080/api/image', formData, config).then(res => {
+        axios.post('http://localhost:8080/api/image', formData).then(res => {
             setLoading(false);
             clearImage();
         }).catch(err => {
@@ -189,7 +191,7 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
                                         <MdOutlineAssignment className='fs-3 text-white position-absolute top-50 start-50 translate-middle' />
                                     </div>
                                 </div>
-                                <h2 className = 'm-0' style={{ color: '#10316B' }}>{exerciseInfor?.TENBT}</h2>
+                                <h2 className='m-0' style={{ color: '#10316B' }}>{exerciseInfor?.TENBT}</h2>
                             </div>
                             <div className="d-flex flex-column flex-lg-row justify-content-between mt-2 ps-4">
                                 <p className='fs-5'>
@@ -253,7 +255,7 @@ const Excercise: FunctionComponent<ExcerciseProps> = () => {
                                 <Select
                                     labelId="demo-simple-select-label"
                                     id="demo-simple-select"
-                                    value={topic}
+                                    value={topic ?? initialTopic.current}
                                     label="Topic"
                                     onChange={handleTopicChange}
                                 >

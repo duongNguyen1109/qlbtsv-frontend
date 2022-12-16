@@ -1,0 +1,11 @@
+.tabList:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.tabList:hover .daNopTab:hover {
+    color: rgb(25,135,84);
+}
+
+.chuaNopTab:hover {
+    color: rgb(220,53,69)
+}
